@@ -3,7 +3,6 @@ from .. import app,api,Resource, request,db,create_refresh_token,create_access_t
 from .. import UserModel
 
 class User(Resource):
-    @jwt_required()
     def get(self):
         data = [user.to_json_serial() for user in UserModel.query.all()]
         return data,200
