@@ -4,7 +4,8 @@ from .. import UserModel
 
 class User(Resource):
     def get(self):
-        data = [user.to_json_serial() for user in UserModel.query.all()]
+        # data = [user.to_json_serial() for user in UserModel.query.all()]
+        data = {'id':1,'username':'david','role':'client','created_by':'now'}
         return data,200
     def post(self):
         username = request.form['username']
