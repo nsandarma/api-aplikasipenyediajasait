@@ -13,6 +13,13 @@ api = Api(app)
 migrate = Migrate(app,db)
 jwt = JWTManager(app=app)
 
-from .models import UserModel
+
+
+def response(msg,status,data):
+    data = [data]
+    return {"msg":msg,'status':status,'data':data}
+
+
+from .models import UserModel,UserDataModel
 from .admin import routes
 from .restAPI import user

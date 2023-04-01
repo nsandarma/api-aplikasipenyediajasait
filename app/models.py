@@ -31,6 +31,21 @@ class UserDataModel(db.Model):
     portofolio = db.Column(db.String,nullable=False)
     email = db.Column(db.String)
     jenis_kelamin = db.Column(db.String,nullable=False)
+    
+
+
+    def __repr__(self):
+        return f"nama => {self.nama}"
+    def to_json_serial(self):
+        return {"username":self.username,
+                "nama":self.nama,
+                "jenis_kelamin":self.jenis_kelamin,
+                "nik":self.nik,
+                "alamat":self.alamat,
+                "email":self.email,
+                "portofolio":self.portofolio,
+                }
+
 
 
 # class ProductModel(db.Model):

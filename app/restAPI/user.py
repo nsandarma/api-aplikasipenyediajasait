@@ -1,6 +1,7 @@
 import datetime
-from .. import app,api,Resource, request,db,create_refresh_token,create_access_token,jwt_required
-from .. import UserModel
+from .. import app,api,Resource, request,db,create_refresh_token,create_access_token,jwt_required,response
+from .. import UserModel,UserDataModel
+
 
 class User(Resource):
     def get(self):
@@ -26,26 +27,78 @@ class User(Resource):
         db.session.delete(user)
         db.session.commit()
         return {'msg':'success deleted !'},200
+    def put(self):
+        id = request.args['id']
+        user = UserModel.query.filter_by(id=id).first()
+        if not user:
+            return {'msg':'data tidak ada !'},404
+        username = request.form['username']
+        password = request.form['password']
+        role = request.form['role']
+        user.userame = username
+        user.setPassword(password)
+        user.role = role
+        db.session.commit()
+        return {'msg':'success update!'},200
 
 
 class Login(Resource):
+    # def post(self):
+    #     username = request.form['username']
+    #     password = request.form['password']
+    #     user = UserModel.query.filter_by(username=username).first()
+    #     if not user:
+    #         return {"msg":'username anda tidak terdaftar'},400
+    #     if not user.checkPassword(password):
+    #         return {'msg':'password anda salah !'},404
+    #     data = user.to_json_serial()
+    #     expires = datetime.timedelta(hours=6)
+    #     expires_refresh = datetime.timedelta(days=7)
+    #     access_token = create_access_token(data,expires_delta=expires)
+    #     refresh_token = create_refresh_token(data,expires_delta=expires_refresh)
+    #     return {'msg':'success Login !','access_token':access_token},200
     def post(self):
         username = request.form['username']
         password = request.form['password']
         user = UserModel.query.filter_by(username=username).first()
-        if not user:
-            return {"msg":'username anda tidak terdaftar'},400
-        if not user.checkPassword(password):
-            return {'msg':'password anda salah !'},404
+        if not user or not user.checkPassword(password):
+            res =  response(msg="username anda tidak ditemukan & password anda salah",status=False,data=None)
+            return res,404
         data = user.to_json_serial()
-        expires = datetime.timedelta(hours=6)
-        expires_refresh = datetime.timedelta(days=7)
-        access_token = create_access_token(data,expires_delta=expires)
-        refresh_token = create_refresh_token(data,expires_delta=expires_refresh)
-        return {'msg':'success Login !','access_token':access_token},200
+        data['time'] = datetime.datetime.now().isoformat()
+        return response(msg='Anda berhasil Login !',status=True,data=data),200
+class UserData(Resource):
+    def get(self):
+        data = [user.to_json_serial() for user in UserDataModel.query.all()]
+        return data,200
+    def post(self):
+        username = request.args['username']
+        user = UserModel.query.filter_by(username=username).first()
+        if not user:
+            return {'msg':"username anda tidak ditemukan !"},404
+        data = request.json['data']
+        try:
+
+            u = UserDataModel(username=username,nama=data['nama'],alamat=data['alamat'],
+                              nik=data['nik'],jenis_kelamin=data['jenis_kelamin'],portofolio=data['portofolio'],
+                              email=data['email']
+                              )
+            db.session.add(u)
+            db.session.commit()
+            return {'msg':'success insert !'},200
+        except Exception as e:
+            return {'msg':str(e)},404
 
 
+        return data,200
+        
 
+class Display(Resource):
+    def get(self):
+        data = [user.to_json_serial() for user in UserModel.query.all()]
+        return data,200
 
-api.add_resource(User,'/api/user')
-api.add_resource(Login,'/api')
+api.add_resource(UserData,'/user/data')
+api.add_resource(Display,'/admin')
+api.add_resource(User,'/user')
+api.add_resource(Login,'/login')
