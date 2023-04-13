@@ -85,7 +85,7 @@ class Register(Resource):
         elif role == 'client':
             data = request.json['data']
             try:
-                u = UserDataModel(username=data['username'],password=data['password'],nama=data['nama'],alamat=data['alamat'],
+                u = UserDataModel(username=data['username'],nama=data['nama'],alamat=data['alamat'],
                                   nik=data['nik'],jenis_kelamin=data['jenis_kelamin'],portofolio=data['portofolio'],
                                   email=data['email']
                                   )
