@@ -89,11 +89,10 @@ class Register(Resource):
                                   nik=data['nik'],jenis_kelamin=data['jenis_kelamin'],portofolio=data['portofolio'],
                                   email=data['email']
                                   )
-                u1 = UserModel(username=data['username'],password=data['password'],role=data['role'])
-                db.session.add(u1)
-                db.session.add(u)
+                u1 = UserModel(username=data['username'],password=data['password'],role='client')
+                db.session.add(u1,u)
                 db.session.commit()
-                return response(msg='anda berhasil mendaftar !',status=True,data=[data['data']])
+                return response(msg='anda berhasil mendaftar !',status=True,data=[data])
             except Exception as e:
                 return response(msg=f'{e}',status=False,data=[None]),404
 
@@ -126,11 +125,14 @@ class UserData(Resource):
 
 class Display(Resource):
     def get(self):
-        data = [user.to_json_serial() for user in UserModel.query.all()]
-        return data,200
+        user = [user.to_json_serial() for user in UserModel.query.all()]
+        client = [user.to_json_serial() for user in UserDataModel.query.all()]
+
+        data = {'user':user,'client':client}
+        return response(msg='berhasil get all data',status=True,data=data)
 
 api.add_resource(UserData,'/user/data')
-api.add_resource(Display,'/admin')
+api.add_resource(Display,'/display')
 api.add_resource(User,'/user')
 api.add_resource(Login,'/login')
 api.add_resource(Register,'/register')
