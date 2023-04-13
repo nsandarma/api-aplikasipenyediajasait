@@ -67,6 +67,37 @@ class Login(Resource):
         data = user.to_json_serial()
         data['time'] = datetime.datetime.now().isoformat()
         return response(msg='Anda berhasil Login !',status=True,data=data),200
+
+class Register(Resource):
+    def post(self):
+        role = request.args['role']
+        if role == 'user':
+            username = request.form['username']
+            password = request.form['password']
+            try:
+                u = UserModel(username=username,role='user')
+                u.setPassword(password)
+                db.session.add(u)
+                db.session.commit()
+                return response(msg='anda berhasil mendaftar !',status=True,data=[u.to_json_serial()])
+            except Exception as e:
+                return response(msg=str(e),status=False,data=[None]),404
+        elif role == 'client':
+            data = request.json['data']
+            try:
+                u = UserDataModel(username=data['username'],password=data['password'],nama=data['nama'],alamat=data['alamat'],
+                                  nik=data['nik'],jenis_kelamin=data['jenis_kelamin'],portofolio=data['portofolio'],
+                                  email=data['email']
+                                  )
+                u1 = UserModel(username=data['username'],password=data['password'],role=data['role'])
+                db.session.add(u1)
+                db.session.add(u)
+                db.session.commit()
+                return response(msg='anda berhasil mendaftar !',status=True,data=[data['data']])
+            except Exception as e:
+                return response(msg=f'{e}',status=False,data=[None]),404
+
+        
 class UserData(Resource):
     def get(self):
         data = [user.to_json_serial() for user in UserDataModel.query.all()]
@@ -102,3 +133,4 @@ api.add_resource(UserData,'/user/data')
 api.add_resource(Display,'/admin')
 api.add_resource(User,'/user')
 api.add_resource(Login,'/login')
+api.add_resource(Register,'/register')
