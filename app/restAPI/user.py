@@ -89,7 +89,8 @@ class Register(Resource):
                                   nik=data['nik'],jenis_kelamin=data['jenis_kelamin'],portofolio=data['portofolio'],
                                   email=data['email']
                                   )
-                u1 = UserModel(username=data['username'],password=data['password'],role='client')
+                u1 = UserModel(username=data['username'],role='client')
+                u1.setPassword(data['password'])
                 db.session.add(u1,u)
                 db.session.commit()
                 return response(msg='anda berhasil mendaftar !',status=True,data=[data])
