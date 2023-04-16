@@ -20,6 +20,6 @@ def response(msg,status,data):
     return {"msg":msg,'status':status,'data':data}
 
 
-from .models import UserModel,UserDataModel
+from .models import UserModel,ClientModel
 from .admin import routes
 from .restAPI import user

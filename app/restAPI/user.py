@@ -1,6 +1,6 @@
 import datetime
 from .. import app,api,Resource, request,db,create_refresh_token,create_access_token,jwt_required,response
-from .. import UserModel,UserDataModel
+from .. import UserModel,ClientModel
 
 
 class User(Resource):
@@ -10,9 +10,8 @@ class User(Resource):
     def post(self):
         username = request.form['username']
         password = request.form['password']
-        role = request.form['role']
         try:
-            u = UserModel(username=username,role=role)
+            u = UserModel(username=username)
             u.setPassword(password)
             db.session.add(u)
             db.session.commit()
@@ -20,53 +19,45 @@ class User(Resource):
         except Exception as e:
             return {'msg':str(e)},404
     def delete(self):
-        id = request.args['id']
-        user = UserModel.query.filter_by(id=id).first()
+        username = request.args['username']
+        user = UserModel.query.filter_by(username=username).first()
         if not user:
             return {'msg':'user anda tidak ditemukan !'},404
         db.session.delete(user)
         db.session.commit()
         return {'msg':'success deleted !'},200
     def put(self):
-        id = request.args['id']
-        user = UserModel.query.filter_by(id=id).first()
+        username = request.args['username']
+        user = UserModel.query.filter_by(username=username).first()
         if not user:
             return {'msg':'data tidak ada !'},404
         username = request.form['username']
         password = request.form['password']
-        role = request.form['role']
+        
         user.userame = username
         user.setPassword(password)
-        user.role = role
+
         db.session.commit()
         return {'msg':'success update!'},200
 
 
 class Login(Resource):
-    # def post(self):
-    #     username = request.form['username']
-    #     password = request.form['password']
-    #     user = UserModel.query.filter_by(username=username).first()
-    #     if not user:
-    #         return {"msg":'username anda tidak terdaftar'},400
-    #     if not user.checkPassword(password):
-    #         return {'msg':'password anda salah !'},404
-    #     data = user.to_json_serial()
-    #     expires = datetime.timedelta(hours=6)
-    #     expires_refresh = datetime.timedelta(days=7)
-    #     access_token = create_access_token(data,expires_delta=expires)
-    #     refresh_token = create_refresh_token(data,expires_delta=expires_refresh)
-    #     return {'msg':'success Login !','access_token':access_token},200
     def post(self):
         username = request.form['username']
         password = request.form['password']
-        user = UserModel.query.filter_by(username=username).first()
-        if not user or not user.checkPassword(password):
-            res =  response(msg="username anda tidak ditemukan & password anda salah",status=False,data=None)
-            return res,404
-        data = user.to_json_serial()
-        data['time'] = datetime.datetime.now().isoformat()
-        return response(msg='Anda berhasil Login !',status=True,data=data),200
+        role = request.args['role']
+        if role == 'client':
+            c = ClientModel.query.filter_by(username=username).first()
+            if not c or not c.checkPassword(password):
+                return response(msg='username anda tidak ditemukan or password anda salah ! 1',status=False,data=[None])
+            return response(msg='Anda berhasil Login ! role <user>',status=True,data=[c.to_json_serial()])
+        elif role =='user':
+            u = UserModel.query.filter_by(username=username).first()
+            if not u or not u.checkPassword(password):
+                return response(msg='username anda tidak ditemukan or password anda salah ! 2',status=False,data=[None])
+            return response(msg=f'Anda berhasil Login ! role <client>',status=True,data=[u.to_json_serial()])
+        else:
+            return response(msg='Bad Request !',status=False,data=[None]),404
 
 class Register(Resource):
     def post(self):
@@ -75,7 +66,7 @@ class Register(Resource):
             username = request.form['username']
             password = request.form['password']
             try:
-                u = UserModel(username=username,role='user')
+                u = UserModel(username=username)
                 u.setPassword(password)
                 db.session.add(u)
                 db.session.commit()
@@ -83,56 +74,73 @@ class Register(Resource):
             except Exception as e:
                 return response(msg=str(e),status=False,data=[None]),404
         elif role == 'client':
-            data = request.json['data']
+            username = request.form['username']
+            password = request.form['password']
+            alamat = request.form['alamat']
+            nik = request.form['nik']
+            jenis_kelamin = request.form['jenis_kelamin']
+            portofolio = request.form['portofolio']
+            email = request.form['email']
+            nama = request.form['nama']
+            
             try:
-                u = UserDataModel(username=data['username'],nama=data['nama'],alamat=data['alamat'],
-                                  nik=data['nik'],jenis_kelamin=data['jenis_kelamin'],portofolio=data['portofolio'],
-                                  email=data['email']
-                                  )
-                u1 = UserModel(username=data['username'],role='client')
-                u1.setPassword(data['password'])
-                db.session.add(u1,u)
+                u = ClientModel(username=username,alamat=alamat,nik=nik,jenis_kelamin=jenis_kelamin,portofolio=portofolio,email=email,nama=nama)
+                u.setPassword(password)
+                
+                db.session.add(u)
                 db.session.commit()
-                return response(msg='anda berhasil mendaftar !',status=True,data=[data])
+                return response(msg='anda berhasil mendaftar !',status=True,data=[u.to_json_serial()])
             except Exception as e:
                 return response(msg=f'{e}',status=False,data=[None]),404
 
         
-class UserData(Resource):
+class Client(Resource):
     def get(self):
-        data = [user.to_json_serial() for user in UserDataModel.query.all()]
+        data = [user.to_json_serial() for user in ClientModel.query.all()]
         return data,200
-    def post(self):
+    def put(self):
         username = request.args['username']
         user = UserModel.query.filter_by(username=username).first()
-        if not user:
-            return {'msg':"username anda tidak ditemukan !"},404
-        data = request.json['data']
+        userData = ClientModel.query.filter_by(username=username).first()
+        if not user or not userData:
+            return response(msg='username anda tidak ditemukan !',status=False,data=[None])
         try:
-
-            u = UserDataModel(username=username,nama=data['nama'],alamat=data['alamat'],
-                              nik=data['nik'],jenis_kelamin=data['jenis_kelamin'],portofolio=data['portofolio'],
-                              email=data['email']
-                              )
-            db.session.add(u)
+            data = request.json['data']
+            user.username = data['username']
+            password = data['password']
+            user.setPassword(password)
+            userData.username = data['username']
+            userData.alamat = data['alamat']
+            userData.nik = data['nik']
+            userData.jenis_kelamin = data['jenis_kelamin']
+            userData.portofolio = data['portofolio']
+            userData.email = data['email']
+            userData.nama = data['nama']
             db.session.commit()
-            return {'msg':'success insert !'},200
+            return response(msg=f'data {data["username"]} berhasil diubah !',status=True,data=[userData.to_json_serial()])
         except Exception as e:
-            return {'msg':str(e)},404
+            return response(msg=str(e),status=False,data=[None])
 
-
-        return data,200
         
 
 class Display(Resource):
     def get(self):
         user = [user.to_json_serial() for user in UserModel.query.all()]
-        client = [user.to_json_serial() for user in UserDataModel.query.all()]
+        client = [user.to_json_serial() for user in ClientModel.query.all()]
 
         data = {'user':user,'client':client}
         return response(msg='berhasil get all data',status=True,data=data)
+    def delete(self):
+        try:
+            UserModel.query.delete()
+            ClientModel.query.delete()
+            db.session.commit()
+            return response(msg='data berhasil dihapus !',status=True,data=[None])
+        except Exception as e:
+            return response(msg=str(e),status=False,data=[None])
+        
 
-api.add_resource(UserData,'/user/data')
+api.add_resource(Client,'/client')
 api.add_resource(Display,'/display')
 api.add_resource(User,'/user')
 api.add_resource(Login,'/login')
