@@ -49,15 +49,15 @@ class Login(Resource):
         if role == 'client':
             c = ClientModel.query.filter_by(username=username).first()
             if not c or not c.checkPassword(password):
-                return response(msg='username anda tidak ditemukan or password anda salah ! 1',status=False,data=[None])
+                return response(msg='username anda tidak ditemukan or password anda salah ! 1',status=False,data=[]),404
             return response(msg='Anda berhasil Login ! role <user>',status=True,data=c.to_json_serial())
         elif role =='user':
             u = UserModel.query.filter_by(username=username).first()
             if not u or not u.checkPassword(password):
-                return response(msg='username anda tidak ditemukan or password anda salah ! 2',status=False,data=[None])
+                return response(msg='username anda tidak ditemukan or password anda salah ! 2',status=False,data=[]),404
             return response(msg=f'Anda berhasil Login ! role <client>',status=True,data=u.to_json_serial())
         else:
-            return response(msg='Bad Request !',status=False,data=[None]),404
+            return response(msg='Bad Request !',status=False,data=[]),404
 
 class Register(Resource):
     def post(self):
@@ -70,9 +70,9 @@ class Register(Resource):
                 u.setPassword(password)
                 db.session.add(u)
                 db.session.commit()
-                return response(msg='anda berhasil mendaftar !',status=True,data=[u.to_json_serial()])
+                return response(msg='anda berhasil mendaftar !',status=True,data=u.to_json_serial())
             except Exception as e:
-                return response(msg=str(e),status=False,data=[None]),404
+                return response(msg=str(e),status=False,data=[]),404
         elif role == 'client':
             username = request.form['username']
             password = request.form['password']
@@ -91,7 +91,7 @@ class Register(Resource):
                 db.session.commit()
                 return response(msg='anda berhasil mendaftar !',status=True,data=[u.to_json_serial()])
             except Exception as e:
-                return response(msg=f'{e}',status=False,data=[None]),404
+                return response(msg=f'{e}',status=False,data=[]),404
 
         
 class Client(Resource):
