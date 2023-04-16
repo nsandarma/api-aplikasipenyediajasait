@@ -89,7 +89,7 @@ class Register(Resource):
                 
                 db.session.add(u)
                 db.session.commit()
-                return response(msg='anda berhasil mendaftar !',status=True,data=[u.to_json_serial()])
+                return response(msg='anda berhasil mendaftar !',status=True,data=u.to_json_serial())
             except Exception as e:
                 return response(msg=f'{e}',status=False,data=[]),404
 
