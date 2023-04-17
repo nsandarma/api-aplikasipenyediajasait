@@ -21,4 +21,4 @@ def response(msg,status,data):
 
 from .models import UserModel,ClientModel,ProductModel
 from .admin import routes
-from .restAPI import user
+from .restAPI import user,product
