@@ -50,12 +50,12 @@ class Login(Resource):
             c = ClientModel.query.filter_by(username=username).first()
             if not c or not c.checkPassword(password):
                 return response(msg='username anda tidak ditemukan or password anda salah ! 1',status=False,data=[]),404
-            return response(msg='Anda berhasil Login ! role <user>',status=True,data=c.to_json_serial())
+            return response(msg='Anda berhasil Login ! role <client>',status=True,data=c.to_json_serial())
         elif role =='user':
             u = UserModel.query.filter_by(username=username).first()
             if not u or not u.checkPassword(password):
                 return response(msg='username anda tidak ditemukan or password anda salah ! 2',status=False,data=[]),404
-            return response(msg=f'Anda berhasil Login ! role <client>',status=True,data=u.to_json_serial())
+            return response(msg=f'Anda berhasil Login ! role <user>',status=True,data=u.to_json_serial())
         else:
             return response(msg='Bad Request !',status=False,data=[]),404
 

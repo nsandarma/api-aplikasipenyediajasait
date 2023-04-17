@@ -63,7 +63,8 @@ class ProductModel(db.Model):
     keterangan = db.Column(db.String)
 
     def to_json_serial(self):
-        return {'productName':self.productName,
+        return {'id':self.id,
+                'productName':self.productName,
                 'kategori':self.kategori,
                 'username':self.username,
                 'created_by':self.created_by,

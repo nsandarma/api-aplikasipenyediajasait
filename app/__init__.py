@@ -16,10 +16,9 @@ jwt = JWTManager(app=app)
 
 
 def response(msg,status,data):
-    data = [data]
     return {"msg":msg,'status':status,'data':data}
 
 
-from .models import UserModel,ClientModel
+from .models import UserModel,ClientModel,ProductModel
 from .admin import routes
 from .restAPI import user
