@@ -4,14 +4,13 @@ from flask_restful import Api,Resource,reqparse
 from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash,check_password_hash
 from config import Config
-from flask_jwt_extended import create_access_token,create_refresh_token,JWTManager,jwt_required
 app = Flask(__name__)
 
 app.config.from_object(Config)
 db = SQLAlchemy(app)
 api = Api(app)
 migrate = Migrate(app,db)
-jwt = JWTManager(app=app)
+
 
 
 

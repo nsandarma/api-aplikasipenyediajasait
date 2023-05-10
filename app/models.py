@@ -75,18 +75,54 @@ class ProductModel(db.Model):
 
     
 
+class NegoModel(db.Model):
+    __tablename__='nego'
+    id = db.Column(db.Integer,primary_key=True)
+    productName = db.Column(db.String,nullable=False)
+    deadline = db.Column(db.DateTime,nullable=False)
+    user = db.Column(db.String,nullable=False)
+    client = db.Column(db.String,nullable=False)
+    status = db.Column(db.String,nullable=False)
+    price = db.Column(db.String,nullable=False)
+    created_by = db.Column(db.DateTime,default=datetime.now())
+
+    def to_json_serial(self):
+        return {'product_id':self.product_id,
+                'user':self.user,
+                'client':self.client,
+                'status':self.status,
+                'deadline':self.deadline,
+                'price':self.content,
+                'datetime':self.created_by
+                }
 
 
-# class TransaksiModel(db.Model):
-#     __tablename__ = 'transaksi'
-#     resi = db.Column(db.String,nullable=False,unique=True)
-#     productName = db.Column(db.String,db.ForeignKey('product.productName'))
-#     tenggangWaktu = db.Column(db.DateTime,nullable=False) 
-#     status = db.Column(db.Integer,nullable=False)
-#
-#     def setDurasi(self,tenggang):
-#         self.tenggangWaktu = self.tenggangWaktu+timedelta(days=tenggang)
-        
+
+class TransaksiModel(db.Model):
+    __tablename__ = 'transaksi'
+    id = db.Column(db.String,primary_key=True)
+    resi = db.Column(db.String,nullable=False,unique=True)
+    productName = db.Column(db.String,db.ForeignKey('product.productName'))
+    status = db.Column(db.Integer,nullable=False)
+    id_nego = db.Column(db.Integer,nullable=False)
+
+
+    def to_json_serial(self):
+        nego = NegoModel.query.filter_by(id=self.id_nego).first()
+        return {
+            'resi':self.resi,
+            'productName':self.productName,
+            'price':self.price,
+            'status':self.status,
+            'nego':nego.to_json_serial()
+        }
+    def setStatus(self,status):
+        if status:
+            self.status = 1
+            return {'msg':'Product sudah selesai !','status':True,'data':[
+                {'resi':self.resi,'productName':self.productName}
+                ]}
+
 
 
 
