@@ -6,18 +6,7 @@ from .. import UserModel,ClientModel
 class User(Resource):
     def get(self):
         data = [user.to_json_serial() for user in UserModel.query.all()]
-        return data,200
-    def post(self):
-        username = request.form['username']
-        password = request.form['password']
-        try:
-            u = UserModel(username=username)
-            u.setPassword(password)
-            db.session.add(u)
-            db.session.commit()
-            return {'msg':'success insert !'},200
-        except Exception as e:
-            return {'msg':str(e)},404
+        return response(msg='berhasil get all data user',status=True,data=data),200
     def delete(self):
         username = request.args['username']
         user = UserModel.query.filter_by(username=username).first()
@@ -39,7 +28,8 @@ class User(Resource):
 
         db.session.commit()
         return {'msg':'success update!'},200
-
+    
+api.add_resource(User,'/user')
 
 class Login(Resource):
     def post(self):
@@ -58,6 +48,8 @@ class Login(Resource):
             return response(msg=f'Anda berhasil Login ! role <user>',status=True,data=[u.to_json_serial()])
         else:
             return response(msg='Bad Request !',status=False,data=[]),404
+        
+api.add_resource(Login,'/login')
 
 class Register(Resource):
     def post(self):
@@ -92,12 +84,13 @@ class Register(Resource):
                 return response(msg='anda berhasil mendaftar !',status=True,data=[u.to_json_serial()])
             except Exception as e:
                 return response(msg=f'{e}',status=False,data=[]),404
-
+            
+api.add_resource(Register,'/register')
         
 class Client(Resource):
     def get(self):
         data = [user.to_json_serial() for user in ClientModel.query.all()]
-        return data,200
+        return response(msg='berhasil get all data client',status=True,data=data),200
     def put(self):
         username = request.args['username']
         user = UserModel.query.filter_by(username=username).first()
@@ -121,7 +114,7 @@ class Client(Resource):
         except Exception as e:
             return response(msg=str(e),status=False,data=[None])
 
-        
+api.add_resource(Client,'/client')     
 
 class Display(Resource):
     def get(self):
@@ -139,9 +132,27 @@ class Display(Resource):
         except Exception as e:
             return response(msg=str(e),status=False,data=[None])
         
-
-api.add_resource(Client,'/client')
 api.add_resource(Display,'/display')
-api.add_resource(User,'/user')
-api.add_resource(Login,'/login')
-api.add_resource(Register,'/register')
+
+class SearchByName(Resource):
+    def get(self):
+        role = request.args['role']
+        username = request.args['username']
+        if role == 'client':
+            data = ClientModel.query.filter_by(username=username).first()
+            if not data:
+                return response(msg='data anda tidak ditemukan !',status=False,data=[]),404
+            return response(msg='berhasil get single data client',status=True,data=[data.to_json_serial()]),200
+        elif role == 'user':
+            data = UserModel.query.filter_by(username=username).first()
+            if not data:
+                return response(msg='data anda tidak ditemukan !',status=False,data=[]),404
+            return response(msg='berhasil get single data user',status=True,data=[data.to_json_serial()]),200
+        else:
+            return response(msg='role anda tidak ditemukan !',status=False,data=[]),400
+        
+            
+
+
+
+
