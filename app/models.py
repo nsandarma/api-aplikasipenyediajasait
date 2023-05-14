@@ -102,7 +102,7 @@ class NegoModel(db.Model):
     def to_json_serial(self):
         
         return {
-            "product_id": self.id,
+            "id": self.id,
             'productName':self.productName,
             "price_awal":self.price_awal,
             "price":self.price,
@@ -116,7 +116,7 @@ class NegoModel(db.Model):
 
 class TransaksiModel(db.Model):
     __tablename__ = "transaksi"
-    id = db.Column(db.String, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     resi = db.Column(db.String, nullable=False, unique=True)
     productName = db.Column(db.String, nullable=False)
     status = db.Column(db.Integer, nullable=False)
