@@ -1,11 +1,7 @@
 from flask import render_template
-from .. import app,db,UserModel
+from .. import app, db, UserModel
 
 
-
-@app.route('/admin')
+@app.route("/admin")
 def admin():
-    return render_template('index.html')
-
-
-
+    return render_template("index.html")

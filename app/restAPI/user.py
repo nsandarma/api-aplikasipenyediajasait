@@ -1,158 +1,275 @@
 import datetime
-from .. import app,api,Resource, request,db,response
-from .. import UserModel,ClientModel
+from .. import app, api, Resource, request, db, response
+from .. import UserModel, ClientModel
 
 
+# TODO:Clear
 class User(Resource):
     def get(self):
-        data = [user.to_json_serial() for user in UserModel.query.all()]
-        return response(msg='berhasil get all data user',status=True,data=data),200
+        try:
+            username = request.args["username"]
+            data = UserModel.query.filter_by(username=username).first()
+            if not data:
+                return (
+                    response(msg="data anda tidak ditemukan !", status=False, data=[]),
+                    404,
+                )
+            return (
+                response(
+                    msg=f"Berhasil get single data user <username:{data.username}>",
+                    status=True,
+                    data=[data.to_json_serial()],
+                ),
+                200,
+            )
+        except:
+            data = [user.to_json_serial() for user in UserModel.query.all()]
+            return (
+                response(msg="berhasil get all data user", status=True, data=data),
+                200,
+            )
+
     def delete(self):
-        username = request.args['username']
+        username = request.args["username"]
         user = UserModel.query.filter_by(username=username).first()
         if not user:
-            return {'msg':'user anda tidak ditemukan !'},404
+            return (
+                response(msg="data anda tidak ditemukan !", status=False, data=[]),
+                404,
+            )
         db.session.delete(user)
         db.session.commit()
-        return {'msg':'success deleted !'},200
+        return (
+            response(
+                msg=f"berhasil hapus single user <username:{username}>",
+                status=True,
+                data=[user.to_json_serial()],
+            ),
+            200,
+        )
+
     def put(self):
-        username = request.args['username']
+        username = request.args["username"]
         user = UserModel.query.filter_by(username=username).first()
         if not user:
-            return {'msg':'data tidak ada !'},404
-        username = request.form['username']
-        password = request.form['password']
-        
-        user.userame = username
+            return (
+                response(msg="data anda tidak ditemukan !", status=False, data=[]),
+                404,
+            )
+        username = request.form["username"]
+        password = request.form["password"]
+
+        user.username = username
         user.setPassword(password)
-
         db.session.commit()
-        return {'msg':'success update!'},200
-    
-api.add_resource(User,'/user')
+        return (
+            response(
+                msg=f"berhasil update single user <username:{username}>",
+                status=True,
+                data=[user.to_json_serial()],
+            ),
+            200,
+        )
 
+
+api.add_resource(User, "/user")
+
+
+# TODO:Clear
 class Login(Resource):
     def post(self):
-        username = request.form['username']
-        password = request.form['password']
-        role = request.args['role']
-        if role == 'client':
+        username = request.form["username"]
+        password = request.form["password"]
+        role = request.args["role"]
+        if role == "client":
             c = ClientModel.query.filter_by(username=username).first()
             if not c or not c.checkPassword(password):
-                return response(msg='username anda tidak ditemukan or password anda salah ! 1',status=False,data=[]),404
-            return response(msg='Anda berhasil Login ! role <client>',status=True,data=[c.to_json_serial()])
-        elif role =='user':
+                return (
+                    response(
+                        msg="username anda tidak ditemukan or password anda salah ! <client>",
+                        status=False,
+                        data=[],
+                    ),
+                    404,
+                )
+            return response(
+                msg="Anda berhasil Login ! role <client>",
+                status=True,
+                data=[c.to_json_serial()],
+            )
+        elif role == "user":
             u = UserModel.query.filter_by(username=username).first()
             if not u or not u.checkPassword(password):
-                return response(msg='username anda tidak ditemukan or password anda salah ! 2',status=False,data=[]),404
-            return response(msg=f'Anda berhasil Login ! role <user>',status=True,data=[u.to_json_serial()])
+                return (
+                    response(
+                        msg="username anda tidak ditemukan or password anda salah ! <user>",
+                        status=False,
+                        data=[],
+                    ),
+                    404,
+                )
+            return response(
+                msg=f"Anda berhasil Login ! role <user>",
+                status=True,
+                data=[u.to_json_serial()],
+            )
         else:
-            return response(msg='Bad Request !',status=False,data=[]),404
-        
-api.add_resource(Login,'/login')
+            return response(msg="Bad Request !", status=False, data=[]), 404
 
+
+api.add_resource(Login, "/login")
+
+
+# TODO:Clear
 class Register(Resource):
     def post(self):
-        role = request.args['role']
-        if role == 'user':
-            username = request.form['username']
-            password = request.form['password']
+        role = request.args["role"]
+        if role == "user":
+            username = request.form["username"]
+            password = request.form["password"]
             try:
                 u = UserModel(username=username)
                 u.setPassword(password)
                 db.session.add(u)
                 db.session.commit()
-                return response(msg='anda berhasil mendaftar !',status=True,data=[u.to_json_serial()])
+                return response(
+                    msg="anda berhasil mendaftar !",
+                    status=True,
+                    data=[u.to_json_serial()],
+                )
             except Exception as e:
-                return response(msg=str(e),status=False,data=[]),404
-        elif role == 'client':
-            username = request.form['username']
-            password = request.form['password']
-            alamat = request.form['alamat']
-            nik = request.form['nik']
-            jenis_kelamin = request.form['jenis_kelamin']
-            portofolio = request.form['portofolio']
-            email = request.form['email']
-            nama = request.form['nama']
-            
+                return response(msg=str(e), status=False, data=[]), 404
+        elif role == "client":
+            username = request.form["username"]
+            password = request.form["password"]
+            alamat = request.form["alamat"]
+            nik = request.form["nik"]
+            jenis_kelamin = request.form["jenis_kelamin"]
+            portofolio = request.form["portofolio"]
+            email = request.form["email"]
+            nama = request.form["nama"]
+
             try:
-                u = ClientModel(username=username,alamat=alamat,nik=nik,jenis_kelamin=jenis_kelamin,portofolio=portofolio,email=email,nama=nama)
+                u = ClientModel(
+                    username=username,
+                    alamat=alamat,
+                    nik=nik,
+                    jenis_kelamin=jenis_kelamin,
+                    portofolio=portofolio,
+                    email=email,
+                    nama=nama,
+                )
                 u.setPassword(password)
-                
+
                 db.session.add(u)
                 db.session.commit()
-                return response(msg='anda berhasil mendaftar !',status=True,data=[u.to_json_serial()])
+                return response(
+                    msg="anda berhasil mendaftar !",
+                    status=True,
+                    data=[u.to_json_serial()],
+                )
             except Exception as e:
-                return response(msg=f'{e}',status=False,data=[]),404
-            
-api.add_resource(Register,'/register')
-        
+                return response(msg=f"{e}", status=False, data=[]), 404
+
+
+api.add_resource(Register, "/register")
+
+
+# TODO:Clear
 class Client(Resource):
     def get(self):
-        data = [user.to_json_serial() for user in ClientModel.query.all()]
-        return response(msg='berhasil get all data client',status=True,data=data),200
-    def put(self):
-        username = request.args['username']
-        user = UserModel.query.filter_by(username=username).first()
-        userData = ClientModel.query.filter_by(username=username).first()
-        if not user or not userData:
-            return response(msg='username anda tidak ditemukan !',status=False,data=[None])
         try:
-            data = request.json['data']
-            user.username = data['username']
-            password = data['password']
-            user.setPassword(password)
-            userData.username = data['username']
-            userData.alamat = data['alamat']
-            userData.nik = data['nik']
-            userData.jenis_kelamin = data['jenis_kelamin']
-            userData.portofolio = data['portofolio']
-            userData.email = data['email']
-            userData.nama = data['nama']
-            db.session.commit()
-            return response(msg=f'data {data["username"]} berhasil diubah !',status=True,data=[userData.to_json_serial()])
-        except Exception as e:
-            return response(msg=str(e),status=False,data=[None])
+            username = request.args["username"]
+            data = ClientModel.query.filter_by(username=username).first()
+            if not data:
+                return (
+                    response(msg="data anda tidak ditemukan !", status=False, data=[]),
+                    404,
+                )
+            return (
+                response(
+                    msg="berhasil get single data client <username:{}>".format(
+                        data.username
+                    ),
+                    status=True,
+                    data=[data.to_json_serial()],
+                ),
+                200,
+            )
+        except:
+            data = [user.to_json_serial() for user in ClientModel.query.all()]
+            return (
+                response(msg="berhasil get all data client", status=True, data=data),
+                200,
+            )
 
-api.add_resource(Client,'/client')     
+    def put(self):
+        username = request.args["username"]
+        client = ClientModel.query.filter_by(username=username).first()
+        if not client:
+            return (
+                response(msg="data anda tidak ditemukan !", status=False, data=[]),
+                404,
+            )
+        client.username = request.form["username"]
+        client.nama = request.form["nama"]
+        client.jenis_kelamin = request.form["jenis_kelamin"]
+        client.alamat = request.form["alamat"]
+        client.email = request.form["email"]
+        client.portofolio = request.form["portofolio"]
+        client.nik = request.form["nik"]
+        password = request.form["password"]
+        client.setPassword(password)
+        db.session.commit()
+        return (
+            response(
+                msg=f"berhasil update single client <username:{client.username}>",
+                status=True,
+                data=[client.to_json_serial()],
+            ),
+            200,
+        )
 
+    def delete(self):
+        username = request.args["username"]
+        client = ClientModel.query.filter_by(username=username).first()
+        if not client:
+            return (
+                response(msg="data anda tidak ditemukan !", status=False, data=[]),
+                404,
+            )
+        db.session.delete(client)
+        db.session.commit()
+        return (
+            response(
+                msg=f"berhasil hapus single client <username:{username}>",
+                status=True,
+                data=[client.to_json_serial()],
+            ),
+            200,
+        )
+
+
+api.add_resource(Client, "/client")
+
+
+# TODO : Clear
 class Display(Resource):
     def get(self):
         user = [user.to_json_serial() for user in UserModel.query.all()]
         client = [user.to_json_serial() for user in ClientModel.query.all()]
 
-        data = {'user':user,'client':client}
-        return response(msg='berhasil get all data',status=True,data=data)
+        data = {"user": user, "client": client}
+        return response(msg="berhasil get all data", status=True, data=data)
+
     def delete(self):
         try:
             UserModel.query.delete()
             ClientModel.query.delete()
             db.session.commit()
-            return response(msg='data berhasil dihapus !',status=True,data=[None])
+            return response(msg="data berhasil dihapus !", status=True, data=[None])
         except Exception as e:
-            return response(msg=str(e),status=False,data=[None])
-        
-api.add_resource(Display,'/display')
-
-class SearchByName(Resource):
-    def get(self):
-        role = request.args['role']
-        username = request.args['username']
-        if role == 'client':
-            data = ClientModel.query.filter_by(username=username).first()
-            if not data:
-                return response(msg='data anda tidak ditemukan !',status=False,data=[]),404
-            return response(msg='berhasil get single data client',status=True,data=[data.to_json_serial()]),200
-        elif role == 'user':
-            data = UserModel.query.filter_by(username=username).first()
-            if not data:
-                return response(msg='data anda tidak ditemukan !',status=False,data=[]),404
-            return response(msg='berhasil get single data user',status=True,data=[data.to_json_serial()]),200
-        else:
-            return response(msg='role anda tidak ditemukan !',status=False,data=[]),400
-        
-            
+            return response(msg=str(e), status=False, data=[None])
 
 
-
-
+api.add_resource(Display, "/display/role")
