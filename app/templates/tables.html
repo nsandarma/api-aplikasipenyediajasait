@@ -1,0 +1,76 @@
+{%include "header.html"%}
+                <!-- Begin Page Content -->
+                <div class="container-fluid">
+
+
+                    <a href="/admin/tables/mp" class="btn btn-dark btn-sm">Menunggu Pembayaran</a>
+                    <a href="/admin/tables/tp" class="btn btn-dark btn-sm">Transaksi Pending</a>
+                    <a href="/admin/tables/tt" class="btn btn-dark btn-sm">Transaksi Selesai</a>
+
+                    <!-- DataTales Example -->
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">{{title}}</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th>Resi</th>
+                                            <th>Product Name</th>
+                                            <th>Price</th>
+                                            <th>User</th>
+                                            
+                                            <th>Status</th>
+                                            
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        
+                                        {%for i in data%}
+                                        <tr>
+                                            <td>{{i.resi}}</td>
+                                            <td>{{i.productName}}</td>
+                                            <td>{{i.price}}</td>
+                                            <td>{{i['nego']['user']}}</td>
+                                            <td>{{i.status}}</td>
+                                           
+                                        </tr>
+                                        {%endfor%}
+                                        
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+
+                </div>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; Your Website 2020</span>
+                    </div>
+                </div>
+            </footer>
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+{%include 'footer.html'%}

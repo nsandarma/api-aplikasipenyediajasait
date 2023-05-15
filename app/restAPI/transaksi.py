@@ -1,5 +1,6 @@
 from .. import Api, Resource, request, db, app, api, response
 from app.models import UserModel, ClientModel, ProductModel, TransaksiModel, NegoModel
+import json
 import datetime
 
 
@@ -43,7 +44,8 @@ class Nego(Resource):
 
         # WARNING :for test
         deadline = request.form["deadline"]
-        deadline_ = datetime.datetime.now()
+        now = datetime.datetime.now()
+        deadline_ = now + datetime.timedelta(int(deadline))
         price = request.form["price"]
         desc = request.form["description"]
         client = p.username
@@ -86,29 +88,63 @@ class NegoEnd(Resource):
         id_nego = request.args["id_nego"]
         q = NegoModel.query.filter_by(id=id_nego).first()
         p = ProductModel.query.filter_by(productName=q.productName).first()
+        if not q or not p:
+            return response('data anda tidak ditemukan !',status=False,data=[]),404
         status = request.form["status"]
         if status == "diterima":
-            q.status = "accept"
+            q.status = "diterima"
             resi = f"{id_nego}/{p.id}/{p.kategori}/{q.user}/{q.client}"
+            catatan = json.dumps({'link':None,'catatan':None})
             t = TransaksiModel(
-                productName=q.productName, status="Sedang dikerjakan !", resi=resi
+                productName=q.productName, status=0, resi=resi,id_nego=id_nego,catatan=catatan
             )
             db.session.add(t)
             db.session.commit()
             return response(
-                msg=f"resi : {resi}", status=True, data=[t.to_json_serial()]
+                msg=f"anda berhasil melakukan transaksi ! resi : {resi}", status=True, data=[t.to_json_serial()]
             )
         elif status== 'ditolak':
-            q.status = "reject"
+            q.status = "ditolak"
             db.session.commit()
             return response(
                 msg="nego ditolak !", status=False, data=[q.to_json_serial()]
             )
+        
         else:
             return response(msg='status anda tidak diketahui !',status=False,data=[]),400
 
 
 api.add_resource(NegoEnd, "/nego/end")
+
+class Transaksi(Resource):
+    def get(self):
+        id_transaksi = request.args['id_transaksi']
+        t = TransaksiModel.query.filter_by(id=id_transaksi).first()
+        if not t:
+            return response('data anda tidak ditemukan !',status=False,data=[]),404
+        return response(msg='berhasil get single data transaksi',status=True,data=[t.to_json_serial()]),200
+    def delete(self):
+        id_transaksi = request.args['id_transaksi']
+        t = TransaksiModel.query.filter_by(id=id_transaksi).first()
+        if not t:
+            return response('data anda tidak ditemukan !',status=False,data=[]),404
+        db.session.delete(t)
+        db.session.commit()
+        return response(msg=f'data transaksi <resi:{t.resi}> berhasil dihapus !',status=True,data=[t.to_json_serial()]),200
+    def post(self):
+        id_transaksi = request.args['id_transaksi']
+        t = TransaksiModel.query.filter_by(id=id_transaksi).first()
+        if not t:
+            return response(msg='data anda tidak ditemukan !',status=False,data=[]),404
+        link = request.form['link']
+        catatan = request.form['catatan']
+        t.catatan = json.dumps({'link':link,'catatan':catatan})
+        t.status = 2
+        db.session.commit()
+        return response(msg='Transaksi selesai !',status=True,data=t.to_json_serial()),200
+    
+
+api.add_resource(Transaksi,'/transaksi')
 
 
 class DisplayNego(Resource):

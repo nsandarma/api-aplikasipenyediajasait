@@ -18,8 +18,8 @@ def response(msg, status, data):
 
 
 from .models import UserModel, ClientModel, ProductModel, TransaksiModel,NegoModel
-from .admin import routes
 from .restAPI import user, product, transaksi
+from . import admin
 
 class DisplayAll(Resource):
     def get(self):

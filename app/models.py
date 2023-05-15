@@ -2,6 +2,7 @@ from sqlalchemy import DateTime
 from . import db, generate_password_hash
 from datetime import datetime, timedelta
 from werkzeug.security import check_password_hash
+import json
 
 
 class UserModel(db.Model):
@@ -90,7 +91,7 @@ class NegoModel(db.Model):
     __tablename__ = "nego"
     id = db.Column(db.Integer, primary_key=True)
     productName = db.Column(db.String, nullable=False)
-    deadline = db.Column(db.DateTime, nullable=False)
+    deadline = db.Column(db.String, nullable=False)
     user = db.Column(db.String, nullable=False)
     client = db.Column(db.String, nullable=False)
     status = db.Column(db.String, nullable=False)
@@ -109,7 +110,7 @@ class NegoModel(db.Model):
             "user": self.user, 
             "client": self.client,
             "status": self.status,
-            "deadline": self.deadline.isoformat(),
+            "deadline": str(self.deadline),
             "description": self.description,
         }
 
@@ -121,14 +122,17 @@ class TransaksiModel(db.Model):
     productName = db.Column(db.String, nullable=False)
     status = db.Column(db.Integer, nullable=False)
     id_nego = db.Column(db.Integer, nullable=False)
+    catatan = db.Column(db.String)
 
     def to_json_serial(self):
         nego = NegoModel.query.filter_by(id=self.id_nego).first()
         return {
+            "id_transaksi":self.id,
             "resi": self.resi,
             "productName": self.productName,
-            "price": self.price,
+            "price": nego.price,
             "status": self.status,
+            "catatan":json.loads(self.catatan),
             "nego": nego.to_json_serial(),
         }
 
@@ -140,3 +144,4 @@ class TransaksiModel(db.Model):
                 "status": True,
                 "data": [{"resi": self.resi, "productName": self.productName}],
             }
+
