@@ -8,7 +8,7 @@ def admin():
 
         total_transaksi = [int(t.to_json_serial()['price']) for t in TransaksiModel.query.all() if t.status==2]
         pending_transaksi = [t.to_json_serial() for t in TransaksiModel.query.all() if t.status==1]
-        total_pemasukan = len(total_transaksi)*5000
+        total_pemasukan = sum([5/100 * t for t in total_transaksi])
         sum_price = numbers.format_currency(currency='Rp ',number=sum(total_transaksi))
         total_pemasukan = numbers.format_currency(currency='Rp ',number=total_pemasukan)
         data = {'sum_price':sum_price,'total_pemasukan':total_pemasukan,'jumlah_transaksi':len(total_transaksi),'pending_transaksi':len(pending_transaksi)}
